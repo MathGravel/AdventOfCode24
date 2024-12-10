@@ -68,53 +68,45 @@ def main1(fileInput):
 
 
 def main2(fileInput):
-    k = KMP()
+    numbers = []
+    emptyBlocks = []
     originalLine = ""
     formattedLine = []
-    uniqueId = 0
+    ptrLoc = 0
     with open(fileInput, 'r') as file:
         originalLine = file.readline()
     for i in range(0,len(originalLine)):
         match i % 2:
             case 0:
-                formattedLine.extend([str(uniqueId)] * int(originalLine[i]))
-                uniqueId += 1
+                formattedLine.extend([len(numbers)] * int(originalLine[i]))
+                numbers.append([ptrLoc,int(originalLine[i]),len(numbers)])
             case 1:
-                formattedLine.extend('.' * int(originalLine[i]))
-    #We fill the empty spaces
-    #print(formattedLine)
-    emptyCursor = formattedLine.index('.')
-    loc = len(formattedLine)-1
-    while loc > 0 and emptyCursor < loc:
-        try :
-            if formattedLine[loc] != '.':
-                #We get the entire file
-                endingPoint = loc
-                startingPoint = loc
-                while(formattedLine[startingPoint] == formattedLine[loc]):
-                    startingPoint -= 1
-                structSize = endingPoint - startingPoint
-                emptyCursor = k.search( formattedLine,'.' * structSize)
-                #print(emptyCursor)
-                if len(emptyCursor) > 0 and emptyCursor[0] < loc:
-                    emptyCursor = emptyCursor[0]
-                    formattedLine[emptyCursor:emptyCursor+structSize] = formattedLine[startingPoint+1:endingPoint+1]
-                    formattedLine[startingPoint+1:endingPoint+1] = ['.']* structSize
-                    #print("ACTUELLEMENT {}".format(formattedLine))
-                else:
-                    emptyCursor = 0
-                loc -= structSize
-            else:
-                loc -= 1
-        except ValueError:
-            print("HUH")
-            break
-    print(formattedLine)
-    part1Value = sum([int(x) * y if x != '.' else 0 for x,y in zip(formattedLine,range(0,len(formattedLine)))])
+                if int(originalLine[i]) > 0:
+                    emptyBlocks.append([ptrLoc,int(originalLine[i])])
+                    formattedLine.extend('.' * int(originalLine[i]))
 
-    print(part1Value)
+        ptrLoc += int(originalLine[i])
+    #print(numbers)
+    for j in range(len(numbers)-1,0,-1):
+        currentFile = numbers[j]
+        #print("WE ARE MOVING {} TO SOMEWHERE IN {} it needs {}".format(formattedLine[currentFile[0]],emptyBlocks,currentFile[1]))
+        for k in range(0,len(emptyBlocks)):
+            currentEmptyBlock = emptyBlocks[k]
+            if currentFile[0] < currentEmptyBlock[0]:
+                continue
+            if currentEmptyBlock[1] >= currentFile[1]:
+                formattedLine[currentEmptyBlock[0]:currentEmptyBlock[0]+currentFile[1]] = formattedLine[currentFile[0]:currentFile[0]+currentFile[1]]
+                formattedLine[currentFile[0]:currentFile[0]+currentFile[1]] = ['.'] * currentFile[1]
+                emptyBlocks[k][1] -= currentFile[1] 
+                emptyBlocks[k][0] += currentFile[1]
+                #print(formattedLine)
+                break
+    #print(formattedLine)
+    part2Value = sum([int(x) * y if x != '.' else 0 for x,y in zip(formattedLine,range(0,len(formattedLine)))])
+
+    print(part2Value)
                 
 if __name__ == "__main__":
     if len(sys.argv) == 2:
-        #main1(sys.argv[1])
+        main1(sys.argv[1])
         main2(sys.argv[1])
